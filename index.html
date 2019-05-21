@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="css/common.css">
+    <title>买卖点</title>
+    <style>
+        body{padding:20px;}
+        input{height:36px;line-height:36px;}
+        #buyTable{margin-top:20px;text-align:center;}
+        #buyTable tr:nth-child(odd){background-color:#666;}
+        #buyTable th{border:1px solid #fff;background-color:#5cacee;}
+        #buyTable td:nth-child(4),#buyTable td:nth-child(5),#buyTable td:nth-child(6){color:#f92472;}
+        #buyTable td:nth-child(7),#buyTable td:nth-child(8),#buyTable td:nth-child(9){color:#a6e229;}
+    </style>
+</head>
+
+<body>
+    <div>
+        <input id="stock" type="text" placeholder="股票">
+        <input id="peak" type="number" placeholder="高点">
+        <input id="low" type="number" placeholder="低点">
+        <button id="calculate" class="btn bg-blue">计算</button>
+    </div>
+
+    <table id="buyTable">
+        <tr>
+            <th></th>
+            <th>0.191 买点</th>
+            <th>0.382 买点</th>
+            <th>0.5 买点</th>
+            <th>0.618 买点</th>
+            <th>0.809 买点</th>
+            <th>1/3 卖点</th>
+            <th>1/2 卖点</th>
+            <th>2/3 卖点</th>
+        </tr>
+    </table>
+
+    <script src="js/common.js"></script>
+    <script>
+        var breakPoint = [0.191, 0.382, 0.5, 0.618, 0.809, 0.3333333333333333, 0.5, 0.6666666666666666],
+            stock = document.getElementById('stock'),
+            peak = document.getElementById('peak'),
+            low = document.getElementById('low'),
+            calculate = document.getElementById('calculate'),
+            buyTable = document.getElementById('buyTable');
+
+        calculate.onclick = function () {
+            var stockName = stock.value,
+                peakVal = peak.value,
+                lowVal = low.value;
+
+            calculateBuy(stockName, peakVal, lowVal, true);
+        };
+
+        function calculateBuy(stockName, peakVal, lowVal, nowAdd) {
+            var peak = parseFloat(peakVal),
+                low = parseFloat(lowVal);
+            var increase = peak - low; //涨幅
+
+            if (peak && low && increase > 0) {
+                var td = '',
+                    tdText = '',
+                    tr = document.createElement('tr'),
+                    td = document.createElement('td'),
+                    tdText = document.createTextNode(stockName),
+                    breakPointVal = 0;
+                if (nowAdd) {
+                    var firstTr = buyTable.getElementsByTagName('tr')[1];
+                    buyTable.insertBefore(tr, firstTr);
+                } else {
+                    buyTable.appendChild(tr);
+                }
+                td.appendChild(tdText);
+                tr.appendChild(td);
+
+                breakPoint.forEach(function (point, index) {
+                    if (index < 5) {
+                        breakPointVal = (peak - increase * point).toFixed(2);
+                    } else {
+                        breakPointVal = ((peak + low) * point).toFixed(2);
+                    }
+                    td = document.createElement('td');
+                    tdText = document.createTextNode(breakPointVal);
+                    td.appendChild(tdText);
+                    tr.appendChild(td);
+                });
+            } else {
+                alert('请输入高点或者低点且高点必须大于低点');
+            }
+        }
+
+        var data = [
+            {
+                name: '000001 上证指数',
+                peak: 3288.45,
+                low: 2440.91,
+            }, {
+                name: '601598 中国外运',
+                peak: 7.69,
+                low: 4.04,
+            }, {
+                name: '000980 众泰汽车',
+                peak: 6.80,
+                low: 4.03,
+            }, {
+                name: '601689 托普集团',
+                peak: 23.60,
+                low: 14.00,
+            }, {
+                name: '000001 平安银行',
+                peak: 14.84,
+                low: 9.15,
+            }, {
+                name: '000723 美锦能源',
+                peak: 21.54,
+                low: 3.11,
+            }, {
+                name: '601002 普亿实业',
+                peak: 8.69,
+                low: 5.31,
+            }
+        ]
+
+        data.forEach(element => {
+            calculateBuy(element.name, element.peak, element.low);
+        });
+    </script>
+</body>
+
+</html>
