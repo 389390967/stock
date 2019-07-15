@@ -9,67 +9,99 @@
     <link rel="stylesheet" href="css/common.css">
     <title>买卖点</title>
     <style>
-        body{padding:20px;}
-        input{height:36px;line-height:36px;}
-        #buyTable{margin-top:20px;text-align:center;}
-        #buyTable tr:nth-child(odd){background-color:#666;}
-        #buyTable th{border:1px solid #fff;background-color:#5cacee;}
-        #buyTable td:nth-child(4),#buyTable td:nth-child(5),#buyTable td:nth-child(6){color:#f92472;}
-        #buyTable td:nth-child(7),#buyTable td:nth-child(8),#buyTable td:nth-child(9){color:#a6e229;}
+        body {
+            padding: 20px;
+        }
+
+        input {
+            height: 36px;
+            line-height: 36px;
+        }
+
+        #buyTable {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #buyTable tr:nth-child(odd) {
+            background-color: #666;
+        }
+
+        #buyTable th {
+            border: 1px solid #fff;
+            background-color: #5cacee;
+        }
+
+        #buyTable td span:nth-child(1){
+            color: #f92472;
+        }
+
+        #buyTable td span:nth-child(2){
+            color: #a6e229;
+        }
     </style>
 </head>
 
 <body>
     <div>
         <input id="stock" type="text" placeholder="股票">
+        <input id="low1" type="number" placeholder="低点1">
         <input id="peak" type="number" placeholder="高点">
-        <input id="low" type="number" placeholder="低点">
+        <input id="low2" type="number" placeholder="低点2">
         <button id="calculate" class="btn bg-blue">计算</button>
     </div>
 
     <table id="buyTable">
         <tr>
             <th></th>
-            <th>0.191 买点</th>
-            <th>0.382 买点</th>
-            <th>0.5 买点</th>
-            <th>0.618 买点</th>
-            <th>0.809 买点</th>
-            <th>1/3 卖点</th>
-            <th>1/2 卖点</th>
-            <th>2/3 卖点</th>
+            <th>0.191 买点 / 卖点</th>
+            <th>0.382 买点 / 卖点</th>
+            <th>0.500 买点 / 卖点</th>
+            <th>0.618 买点 / 卖点</th>
+            <th>0.809 买点 / 卖点</th>
+            <th>1.000 买点 / 卖点</th>
+            <th>2.000 买点 / 卖点</th>
         </tr>
     </table>
 
     <script src="js/common.js"></script>
     <script>
-        var breakPoint = [0.191, 0.382, 0.5, 0.618, 0.809, 0.3333333333333333, 0.5, 0.6666666666666666],
+        var breakPoint = [0.191, 0.382, 0.5, 0.618, 0.809, 1, 2],
             stock = document.getElementById('stock'),
             peak = document.getElementById('peak'),
-            low = document.getElementById('low'),
+            low1 = document.getElementById('low1'),
+            low2 = document.getElementById('low2'),
             calculate = document.getElementById('calculate'),
             buyTable = document.getElementById('buyTable');
 
         calculate.onclick = function () {
             var stockName = stock.value,
                 peakVal = peak.value,
-                lowVal = low.value;
+                low1Val = low1.value,
+                low2Val = low2.value;
 
-            calculateBuy(stockName, peakVal, lowVal, true);
+            if (peakVal == '') {
+                alert('必须填入高点');
+                peak.focus();
+                return;
+            }
+
+            calculateBuy(stockName, peakVal, low1Val, low2Val, true);
         };
 
-        function calculateBuy(stockName, peakVal, lowVal, nowAdd) {
-            var peak = parseFloat(peakVal),
-                low = parseFloat(lowVal);
-            var increase = peak - low; //涨幅
+        function calculateBuy(stockName, peakVal, low1Val, low2Val, nowAdd = false) {
+            var peak = parseFloat(peakVal) || 0,
+                low1 = parseFloat(low1Val) || 0,
+                low2 = parseFloat(low2Val) || 0;
+            var increase = peak - low1; //涨幅
+            var decrease = peak - low2; //跌幅
 
-            if (peak && low && increase > 0) {
-                var td = '',
-                    tdText = '',
-                    tr = document.createElement('tr'),
+            if (increase > 0 && decrease > 0) {
+                var tr = document.createElement('tr'),
                     td = document.createElement('td'),
                     tdText = document.createTextNode(stockName),
-                    breakPointVal = 0;
+                    buyPointVal = 0,
+                    sellPointVal = 0;
                 if (nowAdd) {
                     var firstTr = buyTable.getElementsByTagName('tr')[1];
                     buyTable.insertBefore(tr, firstTr);
@@ -80,18 +112,31 @@
                 tr.appendChild(td);
 
                 breakPoint.forEach(function (point, index) {
-                    if (index < 5) {
-                        breakPointVal = (peak - increase * point).toFixed(2);
+                    if (low1 == 0) {
+                        buyPointVal = 0;
                     } else {
-                        breakPointVal = ((peak + low) * point).toFixed(2);
+                        buyPointVal = (peak - increase * point).toFixed(2);
                     }
+
+                    if (low2 == 0) {
+                        sellPointVal = 0;
+                    } else {
+                        sellPointVal = (peak - decrease * point).toFixed(2);
+                    }
+
                     td = document.createElement('td');
-                    tdText = document.createTextNode(breakPointVal);
-                    td.appendChild(tdText);
+                    span1 = document.createElement('span');
+                    span2 = document.createElement('span');
+                    span1Text = document.createTextNode(buyPointVal + ' / ');
+                    span2Text = document.createTextNode(sellPointVal);
+                    span1.appendChild(span1Text);
+                    span2.appendChild(span2Text);
+                    td.appendChild(span1);
+                    td.appendChild(span2);
                     tr.appendChild(td);
                 });
             } else {
-                alert('请输入高点或者低点且高点必须大于低点');
+                alert('低点1或低点2必须小于高点');
             }
         }
 
@@ -99,60 +144,60 @@
             {
                 name: '000001 上证指数',
                 peak: 3288.45,
-                low: 2440.91,
+                low1: 2440.91,
             }, {
                 name: '601598 中国外运',
                 peak: 7.69,
-                low: 4.04,
+                low1: 4.04,
             }, {
                 name: '000980 众泰汽车',
                 peak: 6.80,
-                low: 4.03,
+                low1: 4.03,
             }, {
                 name: '601689 托普集团',
                 peak: 23.60,
-                low: 14.00,
+                low1: 14.00,
             }, {
                 name: '000001 平安银行',
                 peak: 14.84,
-                low: 9.15,
+                low1: 9.15,
             }, {
                 name: '000723 美锦能源',
                 peak: 21.54,
-                low: 3.11,
+                low1: 3.11,
             }, {
                 name: '601002 普亿实业',
                 peak: 8.69,
-                low: 5.31,
+                low1: 5.31,
             }, {
                 name: '002861',
                 peak: 30.66,
-                low: 18.79,
+                low1: 18.79,
             }, {
                 name: '002655',
                 peak: 11.10,
-                low: 5.85,
+                low1: 5.85,
             }, {
                 name: '002241',
                 peak: 11.49,
-                low: 6.56,
+                low1: 6.56,
             }, {
                 name: '002045',
                 peak: 7.40,
-                low: 4.25,
+                low1: 4.25,
             }, {
                 name: '000557',
                 peak: 5.36,
-                low: 3.35,
+                low1: 3.35,
             }, {
                 name: '000002',
                 peak: 33.60,
-                low: 23.33,
+                low1: 23.33,
             }
         ]
 
         data.forEach(element => {
-            calculateBuy(element.name, element.peak, element.low);
+            calculateBuy(element.name, element.peak, element.low1, element.low2);
         });
     </script>
 </body>
